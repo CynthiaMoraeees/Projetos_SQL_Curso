@@ -1,0 +1,162 @@
+CREATE DATABASE alforje;
+
+USE alforje;
+
+CREATE TABLE jogo
+(
+id_jogo INT UNSIGNED NOT NULL AUTO_INCREMENT,
+nome VARCHAR(100) NOT NULL UNIQUE,
+desenvolvedor VARCHAR(100) NOT NULL,
+genero VARCHAR(50) NOT NULL,
+PRIMARY KEY (id_jogo)
+);
+
+CREATE TABLE item
+(
+id_item INT UNSIGNED NOT NULL AUTO_INCREMENT,
+nome VARCHAR(100) NOT NULL,
+descricao VARCHAR(250) NOT NULL,
+categoria VARCHAR(100) NOT NULL,
+id_jogo INT UNSIGNED,
+PRIMARY KEY (id_item),
+FOREIGN KEY (id_jogo) REFERENCES jogo (id_jogo)
+);
+
+CREATE TABLE material
+(
+id_material INT UNSIGNED NOT NULL  AUTO_INCREMENT, 
+nome VARCHAR(100) NOT NULL,
+local_dica VARCHAR(250),
+PRIMARY KEY (id_material)
+);
+
+CREATE TABLE item_material
+(
+id_item INT UNSIGNED NOT NULL,
+id_material INT UNSIGNED NOT NULL,
+quantidade INT NOT NULL,
+PRIMARY KEY (id_item, id_material),
+FOREIGN KEY (id_item) REFERENCES item (id_item),
+FOREIGN KEY (id_material) REFERENCES material (id_material)
+);
+
+INSERT INTO jogo (nome, desenvolvedor, genero)
+VALUES ("Red Dead Redemption 2", "Rockstar Games", "Ação e aventura com mundo aberto"),
+("The Witcher 3", "CD Projekt Red", "RPG de ação com mundo aberto"),
+("Horizon Zero Dawn", "Guerrilla Games", "Ação e aventura"),
+("Stardew Valley", "ConcernedApe", "Simulação e RPG"),
+("Minecraft", "Mojang Studios", "Sandbox e sobrevivência");
+
+INSERT INTO item (nome, descricao, categoria, id_jogo) 
+VALUES ("Bolsa Lenda do Leste", "Expande a capacidade de todos os itens para 99 unidades.", "Bolsa", 1),
+("Espada de Prata de Toussaint", "Espada de prata eficaz contra monstros, especialmente vampiros.", "Espada", 2),
+("Armadura Shield-Weaver", "Armadura que fornece um escudo de energia, tornando Aloy praticamente invencível.", "Armadura", 3), 
+("Cetro de Retorno", "Teletransporta instantaneamente o jogador para a fazenda.", "Ferramenta", 4), 
+("Elitre", "Permite ao jogador planar pelo ar, oferecendo grande mobilidade e permitindo explorar o mundo de forma única.", "Equipamento", 5);
+ 
+
+INSERT INTO material (nome, local_dica) -- Read Dead Redemption 2 
+VALUES 
+("Pele perfeita de veado", "The Heartlands, New Hanover"),
+("Pele perfeita de onça-parda", "Perto de Owanjila, Big Valley, West Elizabeth"),
+("Pele perfeita de lobo", "Aurora Basin, Tall Trees, West Elizabeth");
+
+INSERT INTO material (nome, local_dica) -- The Witcher 3
+VALUES
+("Aço de Toussaint", "Região de Toussaint"),
+("Essência de Vampiro", "Obtida de vampiros em Toussaint");
+
+INSERT INTO material (nome, local_dica) -- Horizon Zero Dawn
+VALUES 
+("Célula de Energia", "Diversos locais durante a missão 'Arsenal Antigo'"),
+("Tecidos Antigos", "Ruínas antigas e locais de escavação");
+
+INSERT INTO material (nome, local_dica) -- Stardew Valley
+VALUES 
+("Fragmento Prismático", "Minas, Caveiras e Pesca"),
+("Barras de Irídio", "Fundição de minério de irídio");
+
+INSERT INTO material (nome, local_dica) -- Minecraft
+VALUES 
+("Membrana de Phantom", "Dropada por Phantoms durante a noite"),
+("Lingote de Netherite", "Fundição de detritos ancestrais encontrados no Nether");
+
+
+INSERT INTO item_material (id_item, id_material, quantidade) -- Red Dead Redemption 2
+VALUES 
+(1, 1, 1),
+(1, 2, 1),
+(1, 3, 1); 
+
+INSERT INTO item_material (id_item, id_material, quantidade) -- The Witcher 3
+VALUES 
+(2, 4, 2), 
+(2, 5, 1);
+
+INSERT INTO item_material (id_item, id_material, quantidade) -- Horizon Zero Dawn
+VALUES 
+(3, 6, 5),
+(3, 7, 3);
+
+INSERT INTO item_material (id_item, id_material, quantidade) -- Stardew Valley
+VALUES 
+(4, 8, 1),
+(4, 9, 5);
+
+INSERT INTO item_material (id_item, id_material, quantidade) -- Minecraft
+VALUES 
+(5, 10, 2),
+(5, 11, 1);
+
+SELECT * FROM jogo;
+SELECT * FROM item;
+SELECT * FROM material;
+SELECT * FROM item_material;
+
+-- Desativei o modo seguro para permitir updates com WHERE sem PK
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE jogo
+SET nome = "Minecraft - Edição Deluxe"
+WHERE nome = "Minecraft";
+
+UPDATE item 
+SET descricao = "Permite ao jogador planar pelo ar após um salto."
+WHERE nome = "Elitre";
+
+UPDATE material
+SET local_dica = "Encontrado em estruturas do Nether, mais especificamente nos Bastions Remnants."
+WHERE nome = "Lingote de Netherite";
+
+UPDATE item_material
+SET quantidade = 3
+WHERE id_item = 5 AND id_material = 10;
+
+-- Exclui o relacionamento entre item ID 3 e material ID 6
+DELETE FROM item_material
+WHERE id_item = 3 AND id_material = 6;
+
+-- Exclui primeiro o relacionamento do item "Armadura Shield-Weaver"
+DELETE FROM item_material
+WHERE id_item = (SELECT id_item FROM item WHERE nome = "Armadura Shield-Weaver");
+
+-- Depois, exclui o item "Armadura Shield-Weaver"
+DELETE FROM item
+WHERE nome = "Armadura Shield-Weaver";
+
+-- Exclui todos os relacionamentos entre os itens do jogo "Horizon Zero Dawn" e seus materiais
+DELETE FROM item_material
+WHERE id_item IN (
+  SELECT id_item FROM item 
+  WHERE id_jogo = (SELECT id_jogo FROM jogo WHERE nome = "Horizon Zero Dawn")
+);
+
+-- Exclui os itens do jogo "Horizon Zero Dawn"
+DELETE FROM item
+WHERE id_jogo = (SELECT id_jogo FROM jogo WHERE nome = "Horizon Zero Dawn");
+
+DELETE FROM material
+WHERE nome = "Célula de Energia";
+
+DELETE FROM jogo
+WHERE nome = "Horizon Zero Dawn";
